@@ -1,0 +1,4 @@
+to-do
+- add "plan" field to user admin model
+- add many2many "plan" field to thumbnail admin model
+- serializers (?)
