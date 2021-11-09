@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import Thumbnail, Image
+from .models import ThumbnailOption, Image
 
 
-@admin.register(Thumbnail)
+@admin.register(ThumbnailOption)
 class ThumbnailAdmin(admin.ModelAdmin):
     pass
     
