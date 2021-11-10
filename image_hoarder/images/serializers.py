@@ -8,6 +8,29 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import get_storage_class
 
 
+class ImageNestSerializer(serializers.ModelSerializer):
+    thumbnail_option = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Image
+        fields = ('thumbnail_option', 'image',)
+
+
+class UploadSerializer(serializers.ModelSerializer):
+    # images = serializers.StringRelatedField(many=True)
+    images = ImageNestSerializer(many=True, read_only=True)
+    # images = serializers.HyperlinkedRelatedField(
+    #     many=True,
+    #     read_only=True,
+    #     view_name='image-detail'
+    # )
+
+    class Meta:
+        model = Upload
+        fields = ('id', 'user', 'images')
+        read_only_fields = ('images',)
+
+
 class ImageSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -30,7 +53,7 @@ class ImageSerializer(serializers.ModelSerializer):
         Generates a thumbnail image and returns a ContentFile object with the thumbnail
         Arguments:
         original -- The image being resized as `File`.
-        height     -- Desired thumbnail height.
+        height   -- Desired thumbnail height.
         format   -- Format of the original image ('JPEG', 'PNG', ...) The thumbnail will be generated using this same format.
         """
         original.seek(0)
@@ -50,7 +73,7 @@ class ImageSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         user = kwargs.pop('user', None)
         if user is None:
-            raise exceptions.ValidationError("No uses has been passed to the serializer.")
+            raise exceptions.ValidationError("User needs to be passed to the serializer.")
         image = super().save(**kwargs)
 
         # create new user upload
@@ -63,19 +86,6 @@ class ImageSerializer(serializers.ModelSerializer):
         thumbnail_options = user.plan.thumbnail_options.all()
 
         for thumbnail_option in thumbnail_options:
-            # img_height = thumbnail_option.height
-            # image.image.open()
-            # original_img = PIL.Image.open(image.image)
-            # w, h = original_img.size
-            # scale = int(round(h / img_height, 0))
-            # img_width = int(round(w * scale, 0))
-            # thumbnail = original_img.resize((img_width, img_height), PIL.Image.ANTIALIAS)
-            # image_file = StringIO()
-            # thumbnail.save(image_file, 'JPEG', quality=90)
-            # image_file = BytesIO()
-            # thumbnail.save(image_file, 'JPEG', quality=90)
-            # Image.objects.create(upload=upload, image=image_file, thumbnail_option=thumbnail_option, is_original=False)
-
             thumbnail_height = thumbnail_option.height
             content = self.generate_thumb(original_img, thumbnail_height)
             storage = get_storage_class()()
@@ -88,4 +98,4 @@ class ImageSerializer(serializers.ModelSerializer):
                 is_original=False
             )
         
-        return image
+        return upload

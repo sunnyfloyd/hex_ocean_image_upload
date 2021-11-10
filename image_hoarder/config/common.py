@@ -3,8 +3,9 @@ from os.path import join
 from distutils.util import strtobool
 import dj_database_url
 from configurations import Configuration
+import socket
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+HOSTNAME = "http://0.0.0.0:8000"
 
 class Common(Configuration):
 
