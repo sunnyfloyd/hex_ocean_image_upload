@@ -6,6 +6,9 @@ from configurations import Configuration
 import socket
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTNAME = "http://0.0.0.0:8000"
+IMAGE_UPLOAD_DIR = 'uploads/images'
+ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png"]
+
 
 class Common(Configuration):
 

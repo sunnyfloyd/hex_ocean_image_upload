@@ -4,6 +4,8 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import get_storage_class
 import uuid
 from image_hoarder.images.models import Image
+from image_hoarder.config.common import IMAGE_UPLOAD_DIR
+import os
 
 
 def calculate_scaled_size(current_size, thumbnail_height):
@@ -73,7 +75,14 @@ def create_thumbnails(image, user, upload):
         thumbnail_height = thumbnail_option.height
         content = generate_thumb(original_img, thumbnail_height, format)
         storage = get_storage_class()()
-        saved_as = storage.save(str(uuid.uuid4()) + f'.{format.lower()}', content)
+        # saved_as = storage.save('uploads/images/' + str(uuid.uuid4()) + f'.{format.lower()}', content)
+        # saved_as = storage.save(
+        #     f'{IMAGE_UPLOAD_DIR}{uuid.uuid4()}.{format.lower()}', content
+        # )
+        filename = f'{uuid.uuid4()}.{format.lower()}'
+        saved_as = storage.save(
+            os.path.join(IMAGE_UPLOAD_DIR, filename), content
+        )
 
         Image.objects.create(
             upload=upload,

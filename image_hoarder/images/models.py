@@ -3,6 +3,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from image_hoarder.images.validators import validate_image_extension
 from rest_framework.reverse import reverse
+from image_hoarder.images.utils import get_file_path
 
 
 class ThumbnailOption(models.Model):
@@ -38,8 +39,8 @@ class Image(models.Model):
         related_name="images"
     )
     image = models.ImageField(
-        upload_to='images/%Y/%m/%d/',
-        validators=[validate_image_extension(["jpg", "jpeg", "png"])]
+        upload_to=get_file_path,
+        validators=[validate_image_extension]
     )
     thumbnail_option = models.ForeignKey(
         "images.ThumbnailOption",

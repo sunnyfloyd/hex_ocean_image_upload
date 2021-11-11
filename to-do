@@ -1,3 +1,2 @@
-- nazwa oryginalnego pliku graficznego powinna byc rowniez generowana losowo
 - ograniczyc listowane obiekty do obiektow uzytkownika
 - wprowadzic restpoint, ktory bedzie pozwalal na czasowo ograniczony dostep do url
