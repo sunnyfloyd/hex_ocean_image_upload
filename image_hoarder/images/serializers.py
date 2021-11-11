@@ -5,7 +5,7 @@ from image_hoarder.config.common import HOSTNAME
 from image_hoarder.images.thumbnails import create_thumbnails
 
 
-class ImageUploadSerializer(serializers.ModelSerializer):
+class ImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     thumbnail_option = serializers.StringRelatedField(read_only=True)
 
@@ -19,14 +19,14 @@ class ImageUploadSerializer(serializers.ModelSerializer):
 
 
 class UploadSerializer(serializers.ModelSerializer):
-    images = ImageUploadSerializer(many=True, read_only=True)
+    images = ImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Upload
         fields = ('id', 'user', 'images')
 
 
-class ImageSerializer(serializers.ModelSerializer):
+class ImageUploadSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image

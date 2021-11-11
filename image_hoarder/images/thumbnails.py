@@ -27,7 +27,7 @@ def calculate_scaled_size(current_size, thumbnail_height):
     return (thumbnail_width, thumbnail_height)
 
 
-def generate_thumb(original, height, format='JPEG'):
+def generate_thumbnail(original, height, format='JPEG'):
     """
     Generates and returns a thumbnail image.
     
@@ -73,12 +73,8 @@ def create_thumbnails(image, user, upload):
 
     for thumbnail_option in thumbnail_options:
         thumbnail_height = thumbnail_option.height
-        content = generate_thumb(original_img, thumbnail_height, format)
+        content = generate_thumbnail(original_img, thumbnail_height, format)
         storage = get_storage_class()()
-        # saved_as = storage.save('uploads/images/' + str(uuid.uuid4()) + f'.{format.lower()}', content)
-        # saved_as = storage.save(
-        #     f'{IMAGE_UPLOAD_DIR}{uuid.uuid4()}.{format.lower()}', content
-        # )
         filename = f'{uuid.uuid4()}.{format.lower()}'
         saved_as = storage.save(
             os.path.join(IMAGE_UPLOAD_DIR, filename), content

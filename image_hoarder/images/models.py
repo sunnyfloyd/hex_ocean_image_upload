@@ -50,6 +50,21 @@ class Image(models.Model):
         related_name="images"
     )
     is_original = models.BooleanField(default=True)
+
+
+    def __str__(self) -> str:
+        return f'{self.id} part of {self.upload.id} upload'
+
+    def get_absolute_url(self):
+        return reverse("image-detail", kwargs={"pk": self.pk})
+    
+
+class TempLink(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    image = models.ForeignKey(
+        "images.Image", on_delete=models.CASCADE, related_name='temp_links'
+    )
+    created = models.DateTimeField(auto_now_add=True)
     expiry_after = models.IntegerField(
         default=None,
         null=True,
@@ -58,9 +73,5 @@ class Image(models.Model):
             MaxValueValidator(30000)]
     )
 
-    def __str__(self) -> str:
-        return f'{self.id} part of {self.upload.id} upload'
-
     def get_absolute_url(self):
-        return reverse("image-detail", kwargs={"pk": self.pk})
-    
+        return reverse("temporary_content", kwargs={"pk": self.pk})
