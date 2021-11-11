@@ -7,18 +7,6 @@ from image_hoarder.images.serializers import ImageSerializer, UploadSerializer
 from image_hoarder.images.viewsets import MultiSerializerViewSet
 
 
-class ImageViewSet(viewsets.ModelViewSet):
-    """
-    Creates, retrieves and lists uploaded images
-    """
-    queryset = Image.objects.all()
-    serializer_class = ImageSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
 class UploadViewSet(MultiSerializerViewSet):
     """
     Creates, retrieves and lists uploads

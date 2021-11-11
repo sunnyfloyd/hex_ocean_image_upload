@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from image_hoarder.images.validators import validate_image_extension
 from rest_framework.reverse import reverse
 
 
@@ -36,7 +37,10 @@ class Image(models.Model):
         blank=True,
         related_name="images"
     )
-    image = models.ImageField(upload_to='images/%Y/%m/%d/')
+    image = models.ImageField(
+        upload_to='images/%Y/%m/%d/',
+        validators=[validate_image_extension(["jpg", "jpeg", "png"])]
+    )
     thumbnail_option = models.ForeignKey(
         "images.ThumbnailOption",
         on_delete=models.CASCADE,
