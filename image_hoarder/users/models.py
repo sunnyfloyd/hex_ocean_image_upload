@@ -11,6 +11,7 @@ class Plan(models.Model):
     name = models.CharField(max_length=50)
     thumbnail_options = models.ManyToManyField("images.ThumbnailOption", related_name="plans", blank=True)
     keep_original = models.BooleanField(default=False)
+    has_expiry_link = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.name

@@ -30,29 +30,17 @@ class UploadViewSet(MultiSerializerViewSet):
     }
     permission_classes = (IsAuthenticated,)
 
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         upload = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        
-        # returning serialized upload
+
+        # returning serialized upload instance instead of an image one
         return Response(UploadSerializer(upload).data, status=status.HTTP_201_CREATED, headers=headers)
 
 
     def perform_create(self, serializer):
-        # passing current user to the save method
-        # and returning upload instance
+        # returning upload instance
         return serializer.save(user=self.request.user)
-
-
-# class UploadViewSet(viewsets.ModelViewSet):
-#     """
-#     Creates, retrieves and lists uploads
-#     """
-#     queryset = Upload.objects.all()
-#     serializer_class = UploadSerializer
-#     permission_classes = (IsAuthenticated,)
-
-    # def perform_create(self, serializer):
-    #     serializer.save(user=self.request.user)

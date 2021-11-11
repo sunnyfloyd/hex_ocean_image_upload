@@ -1,8 +1,7 @@
 import uuid
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework.reverse import reverse
-from image_hoarder.config.common import HOSTNAME
 
 
 class ThumbnailOption(models.Model):
@@ -46,9 +45,16 @@ class Image(models.Model):
         related_name="images"
     )
     is_original = models.BooleanField(default=True)
+    expiry_after = models.IntegerField(
+        default=None,
+        null=True,
+        validators=[
+            MinValueValidator(300),
+            MaxValueValidator(30000)]
+    )
 
     def __str__(self) -> str:
-        return HOSTNAME + self.image.url
+        return f'{self.id} part of {self.upload.id} upload'
 
     def get_absolute_url(self):
         return reverse("image-detail", kwargs={"pk": self.pk})

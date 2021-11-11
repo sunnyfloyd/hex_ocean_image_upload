@@ -6,38 +6,35 @@ import PIL
 from io import BytesIO
 from django.core.files.base import ContentFile
 from django.core.files.storage import get_storage_class
+from rest_framework import fields
+from image_hoarder.config.common import HOSTNAME
 
 
-class ImageNestSerializer(serializers.ModelSerializer):
+class ImageUploadSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
     thumbnail_option = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Image
         fields = ('thumbnail_option', 'image',)
-
+    
+    def get_image(self, obj):
+        return HOSTNAME + obj.image.url
 
 class UploadSerializer(serializers.ModelSerializer):
-    # images = serializers.StringRelatedField(many=True)
-    images = ImageNestSerializer(many=True, read_only=True)
-    # images = serializers.HyperlinkedRelatedField(
-    #     many=True,
-    #     read_only=True,
-    #     view_name='image-detail'
-    # )
+    images = ImageUploadSerializer(many=True, read_only=True)
 
     class Meta:
         model = Upload
         fields = ('id', 'user', 'images')
-        read_only_fields = ('images',)
 
 
 class ImageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image
-        # fields = ('id', 'upload', 'image', 'thumbnail', 'is_original')
-        fields = ('id', 'upload', 'image', 'thumbnail_option', 'is_original')  # '_all_'
-        read_only_fields = ('upload', 'thumbnail_option', 'is_original')
+        fields = ('id', 'upload', 'image', 'thumbnail_option', 'is_original', 'expiry_after')  # '_all_'
+        read_only_fields = ('upload', 'thumbnail_option', 'is_original', 'expiry_after')
 
 
     def get_scaled_size(self, current_size, thumbnail_height):
@@ -74,12 +71,17 @@ class ImageSerializer(serializers.ModelSerializer):
         user = kwargs.pop('user', None)
         if user is None:
             raise exceptions.ValidationError("User needs to be passed to the serializer.")
-        image = super().save(**kwargs)
-
-        # create new user upload
+        
         upload = Upload.objects.create(user=user)
-        image.upload = upload
-        image.save()
+        keep_original = user.plan.keep_original
+
+        if keep_original:
+            image = super().save(**kwargs)
+            image.upload = upload
+            image.save()
+        else:
+            validated_data = {**self.validated_data, **kwargs}
+            image = Image(**validated_data)
 
         # create thumbnails
         original_img = image.image.open()
