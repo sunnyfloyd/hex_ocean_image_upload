@@ -3,11 +3,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from image_hoarder.images.models import Upload, Image, TempLink
-from image_hoarder.images.serializers import ImageUploadSerializer, UploadSerializer
+from image_hoarder.images.serializers import ImageUploadSerializer, UploadSerializer, TempLinkSerializer
 from image_hoarder.images.viewsets import MultiSerializerViewSet
+from rest_framework import mixins
 from rest_framework.decorators import api_view
 from django.http import HttpResponse
 from rest_framework import exceptions
+from rest_framework import viewsets
+import datetime
+from django.utils import timezone
 
 
 class UploadViewSet(MultiSerializerViewSet):
@@ -41,33 +45,26 @@ class UploadViewSet(MultiSerializerViewSet):
         # returning upload instance
         return serializer.save(user=self.request.user)
 
-@api_view(['POST'])
-def create_temporary_link(request, pk):
-    expiry_after = request.POST.get('expiry_after', None)
 
-    if expiry_after is None:
-        raise exceptions.ValidationError(
-            "'expiry_after' integer value needs to be included in request's body."
-        )
+class TempLinkCreateViewSet(mixins.CreateModelMixin,
+                        viewsets.GenericViewSet):
+    queryset = TempLink.objects.all()
+    serializer_class = TempLinkSerializer
+    permission_classes = (IsAuthenticated,)
 
-    upload = get_object_or_404(Upload, pk=pk)
-    user = request.user
+    def get_queryset(self):
+        user = self.request.user
+        return super().get_queryset().filter(user=user)
 
-    if upload.user != user:
-        raise exceptions.PermissionDenied(
-            "Only user who uploaded an image can create a temporary link for it."
-        )
-    
-    image = get_object_or_404(Upload.images, thumbnail_option=None)
-
-    temp_link = TempLink.objects.create(image=image, expiry_after=expiry_after)
-    return Response({"temp_link": temp_link.get_absolute_url()}, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 def temporary_content(request, pk):
-    temp_obj = get_object_or_404(TempLink, pk=pk)
+    temp_link = get_object_or_404(TempLink, pk=pk)
+    expiration_date = temp_link.created + datetime.timedelta(seconds=temp_link.expiry_after)
 
-    # walidacja linka tutaj
+    if expiration_date < timezone.now():
+        raise exceptions.NotFound()
 
-    image_obj = get_object_or_404(Image, pk=pk)
-    return HttpResponse(image_obj.image, content_type="image/png")
+    image = get_object_or_404(temp_link.upload.images, thumbnail_option=None)
+
+    return HttpResponse(image.image, content_type="image/png")

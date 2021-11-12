@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework import exceptions
-from image_hoarder.images.models import Image, Upload
+from image_hoarder.images.models import Image, TempLink, Upload
 from image_hoarder.config.common import HOSTNAME
 from image_hoarder.images.thumbnails import create_thumbnails
 
@@ -30,8 +30,8 @@ class ImageUploadSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image
-        fields = ('id', 'upload', 'image', 'thumbnail_option', 'is_original', 'expiry_after')  # '_all_'
-        read_only_fields = ('upload', 'thumbnail_option', 'is_original', 'expiry_after')
+        fields = ('id', 'upload', 'image', 'thumbnail_option', 'is_original')  # '_all_'
+        read_only_fields = ('upload', 'thumbnail_option', 'is_original')
 
 
     def save(self, **kwargs):
@@ -52,4 +52,33 @@ class ImageUploadSerializer(serializers.ModelSerializer):
 
         create_thumbnails(image, user, upload)
         
+        return upload
+
+
+class TempLinkSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TempLink
+        fields = '__all__'
+
+    def validate_upload(self, upload):
+        user = self.context['request'].user
+        
+        if upload.user != user:
+            raise serializers.ValidationError(
+                "Only user who uploaded an image can create a temporary link for it."
+            )
+        
+        if not user.plan.has_expiry_link:
+            raise serializers.ValidationError(
+                "Your plan does not allow for temporary link creation."
+            )
+
+        try:
+            upload.images.get(thumbnail_option=None)
+        except Image.DoesNotExist:
+            raise serializers.ValidationError(
+                "There is no original image to which link can be created."
+            )
+
         return upload

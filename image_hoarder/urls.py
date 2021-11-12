@@ -6,12 +6,13 @@ from django.views.generic.base import RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views
 from .users.views import UserViewSet, UserCreateViewSet
-from image_hoarder.images.views import UploadViewSet, temporary_content
+from image_hoarder.images.views import UploadViewSet, TempLinkCreateViewSet, temporary_content
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'users', UserCreateViewSet)
 router.register(r'uploads', UploadViewSet)
+router.register(r'temp-links', TempLinkCreateViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

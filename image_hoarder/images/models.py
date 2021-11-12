@@ -61,8 +61,8 @@ class Image(models.Model):
 
 class TempLink(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    image = models.ForeignKey(
-        "images.Image", on_delete=models.CASCADE, related_name='temp_links'
+    upload = models.ForeignKey(
+        "images.Upload", on_delete=models.CASCADE, related_name='temp_links'
     )
     created = models.DateTimeField(auto_now_add=True)
     expiry_after = models.IntegerField(
