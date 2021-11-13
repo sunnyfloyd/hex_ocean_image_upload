@@ -1,11 +1,13 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from image_hoarder.images.models import Image, ThumbnailOption
+from image_hoarder.images.models import Image, TempLink, ThumbnailOption, Upload
 from image_hoarder.images.serializers import ImageSerializer, ImageUploadSerializer
 from image_hoarder.users.models import Plan, User
-import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
+import datetime
+from freezegun import freeze_time
 
 
 class ImageTestCase(APITestCase):
@@ -16,56 +18,165 @@ class ImageTestCase(APITestCase):
 
         # Create plans
         plan_basic = Plan.objects.create(
-            name="Basic",
-            keep_original=False,
-            has_expiry_link=False
+            name="Basic", keep_original=False, has_expiry_link=False
         )
         plan_basic.thumbnail_options.add(tn200)
-        
+
         plan_premium = Plan.objects.create(
-            name="Premium",
-            keep_original=True,
-            has_expiry_link=False
+            name="Premium", keep_original=True, has_expiry_link=False
         )
         plan_premium.thumbnail_options.add(tn200, tn400)
-        
+
         plan_enterprise = Plan.objects.create(
-            name="Enterprise",
-            keep_original=True,
-            has_expiry_link=True
+            name="Enterprise", keep_original=True, has_expiry_link=True
         )
         plan_enterprise.thumbnail_options.add(tn200, tn400)
 
         # Create users
         self.user_basic = User.objects.create(
-            username='basic',
-            password='123',
-            plan=plan_basic
+            username="basic", password="123", plan=plan_basic
         )
         self.user_premium = User.objects.create(
-            username='premium',
-            password='123',
-            plan=plan_premium
+            username="premium", password="123", plan=plan_premium
         )
         self.user_enterprise = User.objects.create(
-            username='enterprise',
-            password='123',
-            plan=plan_enterprise
+            username="enterprise", password="123", plan=plan_enterprise
         )
 
-    def test_me_now(self):
+    def test_serializer_with_empty_data(self):
+        serializer = ImageUploadSerializer(data={})
+        self.assertEqual(serializer.is_valid(), False)
+
+    def test_serializer_with_valid_data(self):
         example_image = SimpleUploadedFile(
-            name='example.jpg',
-            content=open('example.jpg', 'rb').read(),
-            content_type='image/jpeg'
+            name="example.jpg",
+            content=open("example.jpg", "rb").read(),
+            content_type="image/jpeg",
         )
-        
-        data = {
-            "image": example_image
-        }
+
+        data = {"image": example_image}
+
+        serializer = ImageUploadSerializer(data=data)
+        self.assertEqual(serializer.is_valid(), True)
+        serializer.is_valid()
+
+        upload = serializer.save(user=self.user_basic)
+
+    def test_image_upload_with_allowed_extension(self):
+        example_image = SimpleUploadedFile(
+            name="example.jpg",
+            content=open("example.jpg", "rb").read(),
+            content_type="image/jpeg",
+        )
+
+        data = {"image": example_image}
 
         serializer = ImageUploadSerializer(data=data)
         serializer.is_valid()
 
         upload = serializer.save(user=self.user_basic)
+        self.assertEqual(upload.images.count(), 1)
 
+        upload = serializer.save(user=self.user_premium)
+        self.assertEqual(upload.images.count(), 3)
+
+        upload = serializer.save(user=self.user_enterprise)
+        self.assertEqual(upload.images.count(), 3)
+
+    def test_image_upload_with_disallowed_extension(self):
+        example_image = SimpleUploadedFile(
+            name="example.pbm",
+            content=open("example.pbm", "rb").read(),
+            content_type="image/jpeg",
+        )
+
+        data = {"image": example_image}
+
+        serializer = ImageUploadSerializer(data=data)
+        self.assertEqual(serializer.is_valid(), False)
+
+    def test_image_upload_view(self):
+        url = reverse("upload-list")
+        example_image = SimpleUploadedFile(
+            name="example.jpg",
+            content=open("example.jpg", "rb").read(),
+            content_type="image/jpeg",
+        )
+        data = {"image": example_image}
+
+        self.client.force_authenticate(user=self.user_basic)
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Upload.objects.count(), 1)
+        self.assertEqual(Image.objects.count(), 1)
+
+    def test_temp_link_creation_view(self):
+        url = reverse("upload-list")
+        example_image = SimpleUploadedFile(
+            name="example.jpg",
+            content=open("example.jpg", "rb").read(),
+            content_type="image/jpeg",
+        )
+        data = {"image": example_image}
+
+        self.client.force_authenticate(user=self.user_enterprise)
+        self.client.post(url, data)
+
+        url = reverse("templink-list")
+        upload = Upload.objects.all()[0]
+        data = {"upload": upload.id, "expiry_after": 300}
+
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(TempLink.objects.count(), 1)
+
+    def test_valid_link_is_accessible(self):
+        url = reverse("upload-list")
+        example_image = SimpleUploadedFile(
+            name="example.jpg",
+            content=open("example.jpg", "rb").read(),
+            content_type="image/jpeg",
+        )
+        data = {"image": example_image}
+
+        self.client.force_authenticate(user=self.user_enterprise)
+        self.client.post(url, data)
+
+        url = reverse("templink-list")
+        upload = Upload.objects.all()[0]
+        data = {"upload": upload.id, "expiry_after": 300}
+        self.client.post(url, data)
+
+        temp_link = TempLink.objects.all()[0]
+        url = reverse("temporary-content", kwargs={"pk": temp_link.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.headers["Content-Type"], "image/jpg")
+
+    def test_expired_link_is_not_accessible(self):
+        url = reverse("upload-list")
+        example_image = SimpleUploadedFile(
+            name="example.jpg",
+            content=open("example.jpg", "rb").read(),
+            content_type="image/jpeg",
+        )
+        data = {"image": example_image}
+
+        self.client.force_authenticate(user=self.user_enterprise)
+        self.client.post(url, data)
+
+        url = reverse("templink-list")
+        upload = Upload.objects.all()[0]
+        data = {"upload": upload.id, "expiry_after": 300}
+        self.client.post(url, data)
+
+        temp_link = TempLink.objects.all()[0]
+        freezer = freeze_time(timezone.now() + datetime.timedelta(seconds=500))
+        freezer.start()
+        url = reverse("temporary-content", kwargs={"pk": temp_link.id})
+        response = self.client.get(url)
+        freezer.stop()
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

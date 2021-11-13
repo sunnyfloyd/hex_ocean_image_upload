@@ -67,4 +67,4 @@ def temporary_content(request, pk):
 
     image = get_object_or_404(temp_link.upload.images, thumbnail_option=None)
 
-    return HttpResponse(image.image, content_type="image/png")
+    return HttpResponse(image.image, content_type="image/jpg")

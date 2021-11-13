@@ -17,7 +17,7 @@ router.register(r'temp-links', TempLinkCreateViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),
-    path('api/v1/temporary-content/<uuid:pk>/', temporary_content),
+    path('api/v1/temporary-content/<uuid:pk>/', temporary_content, name="temporary-content"),
     path('api-token-auth/', views.obtain_auth_token),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
