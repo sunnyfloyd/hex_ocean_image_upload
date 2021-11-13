@@ -51,12 +51,6 @@ class Common(Configuration):
     ADMINS = (("Author", "mdebski@hotmail.com"),)
 
     # Postgres
-    # DATABASES = {
-    #     'default': {
-    #         'ENGINE': 'django.db.backends.sqlite3',
-    #         'NAME': 'mydatabase',
-    #     }
-    # }
     DATABASES = {
         "default": dj_database_url.config(
             default="postgres://postgres:@postgres:5432/postgres",
