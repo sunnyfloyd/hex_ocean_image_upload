@@ -11,8 +11,10 @@ class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('thumbnail_option', 'image',)
-    
+        fields = (
+            "thumbnail_option",
+            "image",
+        )
 
     def get_image(self, obj):
         return HOSTNAME + obj.image.url
@@ -23,22 +25,22 @@ class UploadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Upload
-        fields = ('id', 'user', 'images')
+        fields = ("id", "user", "images")
 
 
 class ImageUploadSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = Image
-        fields = ('id', 'upload', 'image', 'thumbnail_option', 'is_original')  # '_all_'
-        read_only_fields = ('upload', 'thumbnail_option', 'is_original')
-
+        fields = ("id", "upload", "image", "thumbnail_option", "is_original")  # '_all_'
+        read_only_fields = ("upload", "thumbnail_option", "is_original")
 
     def save(self, **kwargs):
-        user = kwargs.pop('user', None)
+        user = kwargs.pop("user", None)
         if user is None:
-            raise exceptions.ValidationError("User needs to be passed to the serializer.")
-        
+            raise exceptions.ValidationError(
+                "User needs to be passed to the serializer."
+            )
+
         upload = Upload.objects.create(user=user)
         keep_original = user.plan.keep_original
 
@@ -51,24 +53,23 @@ class ImageUploadSerializer(serializers.ModelSerializer):
             image = Image(**validated_data)
 
         create_thumbnails(image, user, upload)
-        
+
         return upload
 
 
 class TempLinkSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = TempLink
-        fields = '__all__'
+        fields = "__all__"
 
     def validate_upload(self, upload):
-        user = self.context['request'].user
-        
+        user = self.context["request"].user
+
         if upload.user != user:
             raise serializers.ValidationError(
                 "Only user who uploaded an image can create a temporary link for it."
             )
-        
+
         if not user.plan.has_expiry_link:
             raise serializers.ValidationError(
                 "Your plan does not allow for temporary link creation."

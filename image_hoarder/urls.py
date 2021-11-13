@@ -6,23 +6,29 @@ from django.views.generic.base import RedirectView
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views
 from .users.views import UserViewSet, UserCreateViewSet
-from image_hoarder.images.views import UploadViewSet, TempLinkCreateViewSet, temporary_content
+from image_hoarder.images.views import (
+    UploadViewSet,
+    TempLinkCreateViewSet,
+    temporary_content,
+)
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'users', UserCreateViewSet)
-router.register(r'uploads', UploadViewSet)
-router.register(r'temp-links', TempLinkCreateViewSet)
+router.register(r"users", UserViewSet)
+router.register(r"users", UserCreateViewSet)
+router.register(r"uploads", UploadViewSet)
+router.register(r"temp-links", TempLinkCreateViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/v1/', include(router.urls)),
-    path('api/v1/temporary-content/<uuid:pk>/', temporary_content, name="temporary-content"),
-    path('api-token-auth/', views.obtain_auth_token),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-
+    path("admin/", admin.site.urls),
+    path("api/v1/", include(router.urls)),
+    path(
+        "api/v1/temporary-content/<uuid:pk>/",
+        temporary_content,
+        name="temporary-content",
+    ),
+    path("api-token-auth/", views.obtain_auth_token),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     # the 'api-root' from django rest-frameworks default router
     # http://www.django-rest-framework.org/api-guide/routers/#defaultrouter
-    re_path(r'^$', RedirectView.as_view(url=reverse_lazy('api-root'), permanent=False)),
-
+    re_path(r"^$", RedirectView.as_view(url=reverse_lazy("api-root"), permanent=False)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -7,10 +7,7 @@ from image_hoarder.images.utils import get_file_path
 
 
 class ThumbnailOption(models.Model):
-    height = models.IntegerField(
-        validators=[MinValueValidator(100)],
-        unique=True
-    )
+    height = models.IntegerField(validators=[MinValueValidator(100)], unique=True)
 
     def __str__(self) -> str:
         return f"Thumbnail height: {self.height}"
@@ -23,7 +20,7 @@ class Upload(models.Model):
     )
 
     def __str__(self) -> str:
-        return f'{self.id} uploaded by {self.user.username}'
+        return f"{self.id} uploaded by {self.user.username}"
 
     def get_absolute_url(self):
         return reverse("upload-detail", kwargs={"pk": self.pk})
@@ -36,41 +33,37 @@ class Image(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name="images"
+        related_name="images",
     )
     image = models.ImageField(
-        upload_to=get_file_path,
-        validators=[validate_image_extension]
+        upload_to=get_file_path, validators=[validate_image_extension]
     )
     thumbnail_option = models.ForeignKey(
         "images.ThumbnailOption",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name="images"
+        related_name="images",
     )
     is_original = models.BooleanField(default=True)
 
-
     def __str__(self) -> str:
-        return f'{self.id} part of {self.upload.id} upload'
+        return f"{self.id} part of {self.upload.id} upload"
 
     def get_absolute_url(self):
         return reverse("image-detail", kwargs={"pk": self.pk})
-    
+
 
 class TempLink(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     upload = models.ForeignKey(
-        "images.Upload", on_delete=models.CASCADE, related_name='temp_links'
+        "images.Upload", on_delete=models.CASCADE, related_name="temp_links"
     )
     created = models.DateTimeField(auto_now_add=True)
     expiry_after = models.IntegerField(
         default=None,
         null=True,
-        validators=[
-            MinValueValidator(300),
-            MaxValueValidator(30000)]
+        validators=[MinValueValidator(300), MaxValueValidator(30000)],
     )
 
     def get_absolute_url(self):

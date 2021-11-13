@@ -6,8 +6,9 @@ from django.core.exceptions import ValidationError
 # declaration. Validator was working properly, but `makemigrations` was raising
 # an exception.
 
+
 def validate_image_extension(image):
-    splitted_name = image.name.split('.')
+    splitted_name = image.name.split(".")
 
     if len(splitted_name) < 2:
         raise ValidationError("Image file needs to have an extension.")

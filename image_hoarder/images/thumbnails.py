@@ -23,14 +23,14 @@ def calculate_scaled_size(current_size, thumbnail_height):
     current_width, current_height = current_size
     scale = int(round(current_height / thumbnail_height, 0))
     thumbnail_width = int(round(current_width / scale, 0))
-    
+
     return (thumbnail_width, thumbnail_height)
 
 
-def generate_thumbnail(original, height, format='JPEG'):
+def generate_thumbnail(original, height, format="JPEG"):
     """
     Generates and returns a thumbnail image.
-    
+
     Args:
         original: The image being resized as `File`.
         height: Desired thumbnail height.
@@ -45,14 +45,14 @@ def generate_thumbnail(original, height, format='JPEG'):
     image = PIL.Image.open(original)
     current_size = image.size
     size = calculate_scaled_size(current_size, height)
-    format = "JPEG" if format.lower() == 'jpg' else format
+    format = "JPEG" if format.lower() == "jpg" else format
 
-    if image.mode not in ('L', 'RGB', 'RGBA'):
-        image = image.convert('RGB')
+    if image.mode not in ("L", "RGB", "RGBA"):
+        image = image.convert("RGB")
     thumbnail = PIL.ImageOps.fit(image, size, PIL.Image.ANTIALIAS)
     io = BytesIO()
     thumbnail.save(io, format)
-    
+
     return ContentFile(io.getvalue())
 
 
@@ -68,21 +68,19 @@ def create_thumbnails(image, user, upload):
     """
 
     original_img = image.image.open()
-    format = image.image.name.split('.')[-1]
+    format = image.image.name.split(".")[-1]
     thumbnail_options = user.plan.thumbnail_options.all()
 
     for thumbnail_option in thumbnail_options:
         thumbnail_height = thumbnail_option.height
         content = generate_thumbnail(original_img, thumbnail_height, format)
         storage = get_storage_class()()
-        filename = f'{uuid.uuid4()}.{format.lower()}'
-        saved_as = storage.save(
-            os.path.join(IMAGE_UPLOAD_DIR, filename), content
-        )
+        filename = f"{uuid.uuid4()}.{format.lower()}"
+        saved_as = storage.save(os.path.join(IMAGE_UPLOAD_DIR, filename), content)
 
         Image.objects.create(
             upload=upload,
             image=saved_as,
             thumbnail_option=thumbnail_option,
-            is_original=False
+            is_original=False,
         )

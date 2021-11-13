@@ -7,9 +7,10 @@ from .models import User, Plan
 class UserAdmin(UserAdmin):
     pass
 
-UserAdmin.list_display += ('plan',)
-UserAdmin.list_filter += ('plan',)
-UserAdmin.fieldsets += (('User Plan', {'fields': ('plan', )}),)
+
+UserAdmin.list_display += ("plan",)
+UserAdmin.list_filter += ("plan",)
+UserAdmin.fieldsets += (("User Plan", {"fields": ("plan",)}),)
 
 
 @admin.register(Plan)

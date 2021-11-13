@@ -9,7 +9,9 @@ from rest_framework.authtoken.models import Token
 
 class Plan(models.Model):
     name = models.CharField(max_length=50)
-    thumbnail_options = models.ManyToManyField("images.ThumbnailOption", related_name="plans", blank=True)
+    thumbnail_options = models.ManyToManyField(
+        "images.ThumbnailOption", related_name="plans", blank=True
+    )
     keep_original = models.BooleanField(default=False)
     has_expiry_link = models.BooleanField(default=False)
 
@@ -19,7 +21,9 @@ class Plan(models.Model):
 
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name="users", null=True, blank=True)
+    plan = models.ForeignKey(
+        Plan, on_delete=models.CASCADE, related_name="users", null=True, blank=True
+    )
 
     def __str__(self):
         return self.username

@@ -6,6 +6,6 @@ def get_file_path(instance, filename):
     """
     Overrides default ImageField file naming.
     """
-    ext = filename.split('.')[-1]
-    filename = f'{instance.id}.{ext}'
+    ext = filename.split(".")[-1]
+    filename = f"{instance.id}.{ext}"
     return os.path.join(IMAGE_UPLOAD_DIR, filename)
