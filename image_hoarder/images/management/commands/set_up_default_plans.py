@@ -6,7 +6,7 @@ from image_hoarder.users.models import User, Plan
 class Command(BaseCommand):
     help = "Sets up a default plans and thumbnail options."
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **options):
         # Create thumbnails
         tn200 = ThumbnailOption.objects.create(height=200)
         tn400 = ThumbnailOption.objects.create(height=400)
