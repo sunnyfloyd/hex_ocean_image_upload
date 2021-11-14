@@ -1,10 +1,6 @@
 # Image Upload DRF API for Hex Ocean Recruitment
 
-[![Build Status](https://travis-ci.org/sunnyfloyd/hexocean_image_upload.svg?branch=master)](https://travis-ci.org/sunnyfloyd/hexocean_image_upload)
-[![Built with](https://img.shields.io/badge/Built_with-Cookiecutter_Django_Rest-F7B633.svg)](https://github.com/agconti/cookiecutter-django-rest)
-
-Image storing application for HexOcean recruitment process.
- 
+Image storing application for HexOcean recruitment process. 
 
 ## How to Set-up a Project Locally
 
