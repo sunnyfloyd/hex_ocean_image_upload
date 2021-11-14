@@ -58,9 +58,14 @@ class ImageUploadSerializer(serializers.ModelSerializer):
 
 
 class TempLinkSerializer(serializers.ModelSerializer):
+    temp_link = serializers.SerializerMethodField()
+
     class Meta:
         model = TempLink
-        fields = "__all__"
+        fields = ("id", "upload", "expiry_after", "temp_link")
+
+    def get_temp_link(self, obj):
+        return f"{HOSTNAME}/api/v1/temporary-content/{obj.id}/"
 
     def validate_upload(self, upload):
         user = self.context["request"].user

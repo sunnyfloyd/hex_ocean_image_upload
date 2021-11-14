@@ -47,31 +47,33 @@ class ImageTestCase(APITestCase):
         serializer = ImageUploadSerializer(data={})
         self.assertEqual(serializer.is_valid(), False)
 
-    def test_serializer_with_valid_data(self):
+    def _create_image_upload_serializer(self, name):
         example_image = SimpleUploadedFile(
-            name="example.jpg",
-            content=open("example.jpg", "rb").read(),
-            content_type="image/jpeg",
+            name=name, content=open(name, 'rb').read(), content_type='image/jpeg'
         )
 
-        data = {"image": example_image}
+        data = {'image': example_image}
+        return ImageUploadSerializer(data=data)
 
-        serializer = ImageUploadSerializer(data=data)
+    def test_serializer_with_valid_data(self):
+        serializer = (
+            self._create_image_upload_serializer(
+                "example.jpg"
+            )
+        )
+
         self.assertEqual(serializer.is_valid(), True)
         serializer.is_valid()
 
         upload = serializer.save(user=self.user_basic)
 
     def test_image_upload_with_allowed_extension(self):
-        example_image = SimpleUploadedFile(
-            name="example.jpg",
-            content=open("example.jpg", "rb").read(),
-            content_type="image/jpeg",
+        serializer = (
+            self._create_image_upload_serializer(
+                "example.jpg"
+            )
         )
 
-        data = {"image": example_image}
-
-        serializer = ImageUploadSerializer(data=data)
         serializer.is_valid()
 
         upload = serializer.save(user=self.user_basic)
@@ -84,18 +86,15 @@ class ImageTestCase(APITestCase):
         self.assertEqual(upload.images.count(), 3)
 
     def test_image_upload_with_disallowed_extension(self):
-        example_image = SimpleUploadedFile(
-            name="example.pbm",
-            content=open("example.pbm", "rb").read(),
-            content_type="image/jpeg",
+        serializer = (
+            self._create_image_upload_serializer(
+                "example.pbm"
+            )
         )
 
-        data = {"image": example_image}
-
-        serializer = ImageUploadSerializer(data=data)
         self.assertEqual(serializer.is_valid(), False)
 
-    def test_image_upload_view(self):
+    def _upload_image(self, user_type):
         url = reverse("upload-list")
         example_image = SimpleUploadedFile(
             name="example.jpg",
@@ -104,24 +103,18 @@ class ImageTestCase(APITestCase):
         )
         data = {"image": example_image}
 
-        self.client.force_authenticate(user=self.user_basic)
-        response = self.client.post(url, data)
+        self.client.force_authenticate(user=user_type)
+        return self.client.post(url, data)
+
+    def test_image_upload_view(self):
+        response = self._upload_image(self.user_basic)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Upload.objects.count(), 1)
         self.assertEqual(Image.objects.count(), 1)
 
     def test_temp_link_creation_view(self):
-        url = reverse("upload-list")
-        example_image = SimpleUploadedFile(
-            name="example.jpg",
-            content=open("example.jpg", "rb").read(),
-            content_type="image/jpeg",
-        )
-        data = {"image": example_image}
-
-        self.client.force_authenticate(user=self.user_enterprise)
-        self.client.post(url, data)
+        self._upload_image(self.user_enterprise)
 
         url = reverse("templink-list")
         upload = Upload.objects.all()[0]
@@ -133,16 +126,7 @@ class ImageTestCase(APITestCase):
         self.assertEqual(TempLink.objects.count(), 1)
 
     def test_valid_link_is_accessible(self):
-        url = reverse("upload-list")
-        example_image = SimpleUploadedFile(
-            name="example.jpg",
-            content=open("example.jpg", "rb").read(),
-            content_type="image/jpeg",
-        )
-        data = {"image": example_image}
-
-        self.client.force_authenticate(user=self.user_enterprise)
-        self.client.post(url, data)
+        self._upload_image(self.user_enterprise)
 
         url = reverse("templink-list")
         upload = Upload.objects.all()[0]
@@ -156,16 +140,7 @@ class ImageTestCase(APITestCase):
         self.assertEqual(response.headers["Content-Type"], "image/jpg")
 
     def test_expired_link_is_not_accessible(self):
-        url = reverse("upload-list")
-        example_image = SimpleUploadedFile(
-            name="example.jpg",
-            content=open("example.jpg", "rb").read(),
-            content_type="image/jpeg",
-        )
-        data = {"image": example_image}
-
-        self.client.force_authenticate(user=self.user_enterprise)
-        self.client.post(url, data)
+        self._upload_image(self.user_enterprise)
 
         url = reverse("templink-list")
         upload = Upload.objects.all()[0]
