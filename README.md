@@ -12,7 +12,7 @@ docker-compose run --rm web python manage.py migrate
 docker-compose up
 ```
 
-2. Set up initial project structure (default plans with thumbnail options) run:
+2. Set up initial project structure (default plans with thumbnail options and users) run:
 
 ```bash
 docker-compose run --rm web python manage.py set_up_default_plans
@@ -48,5 +48,5 @@ docker-compose run --rm web python manage.py test
 
 ## Not-Implemented Project Enhancements
 
-- If business requirement would allow for delayed thumbnail generation I would delegate this task to a background processing with Redis Queue/Celery
+- If a business requirement would allow for delayed thumbnail generation I would delegate this task to a background processing with Redis Queue/Celery
 - Deployment should be done with Nginx or other load balancer with capability to serve static files
