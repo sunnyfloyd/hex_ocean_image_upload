@@ -16,7 +16,7 @@ docker-compose up
 - To run tests run a following command inside the docker container:
 
 ```bash
-docker-compose run --rm web test
+docker-compose run --rm web python manage.py test
 ```
 
 ## Time Spent on Development
