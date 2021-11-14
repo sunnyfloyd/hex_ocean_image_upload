@@ -1,25 +1,35 @@
 # Image Upload DRF API for Hex Ocean Recruitment
 
-Image storing application for HexOcean recruitment process. 
+Image storing application for HexOcean recruitment process.
 
 ## How to Set-up a Project Locally
 
-- To start a project use:
+1. Run initial migration:
+
 ```bash
+docker-compose run --rm web python manage.py migrate
+# OR
 docker-compose up
 ```
 
-- To set up initial project structure (default plans with thumbnail options) run:
+2. Set up initial project structure (default plans with thumbnail options) run:
 
 ```bash
 docker-compose run --rm web python manage.py set_up_default_plans
 ```
 
-- Use Django Admin Panel to create new users, plans and thumbnails:
+3. Run a server:
 
 ```bash
-docker-compose run --rm web python manage.py createsuperuser
+docker-compose up
 ```
+
+4. For convenience following accounts are created with corresponding plans:
+
+- login: admin; password: 123 (superuser)
+- login: basic; password: 123 
+- login: premium; password: 123 
+- login: enterprise; password: 123 
 
 - To run tests run a following command:
 

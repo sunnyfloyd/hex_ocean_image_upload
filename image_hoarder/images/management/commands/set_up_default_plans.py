@@ -28,8 +28,8 @@ class Command(BaseCommand):
         plan_enterprise.thumbnail_options.add(tn200, tn400)
 
         # Create users
-        User.objects.create_user(
-            username="admin", password="123", is_staff=True, plan=plan_enterprise
+        User.objects.create_superuser(
+            username="admin", password="123", plan=plan_enterprise
         )
         
         User.objects.create_user(
