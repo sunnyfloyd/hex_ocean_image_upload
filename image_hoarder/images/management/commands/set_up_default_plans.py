@@ -9,7 +9,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             User.objects.get(username="admin")
-        
+
         except User.DoesNotExist:
             # Create thumbnails
             tn200 = ThumbnailOption.objects.create(height=200)
@@ -35,10 +35,8 @@ class Command(BaseCommand):
             User.objects.create_superuser(
                 username="admin", password="123", plan=plan_enterprise
             )
-            
-            User.objects.create_user(
-                username="basic", password="123", plan=plan_basic
-            )
+
+            User.objects.create_user(username="basic", password="123", plan=plan_basic)
             User.objects.create_user(
                 username="premium", password="123", plan=plan_premium
             )
@@ -47,7 +45,5 @@ class Command(BaseCommand):
             )
 
             self.stdout.write(
-                self.style.SUCCESS(
-                    "Default plans have been successfully created."
-                )
+                self.style.SUCCESS("Default plans have been successfully created.")
             )
