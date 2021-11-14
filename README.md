@@ -13,7 +13,7 @@ Image storing application for HexOcean recruitment process.
 docker-compose up
 ```
 
-- To run tests run a following command inside the docker container:
+- To run tests run a following command:
 
 ```bash
 docker-compose run --rm web python manage.py test
