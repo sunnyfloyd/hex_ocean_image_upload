@@ -9,6 +9,14 @@ Image storing application for HexOcean recruitment process.
 docker-compose up
 ```
 
+- To view browseable API you need to create an user:
+
+```bash
+docker-compose run --rm web python manage.py createsuperuser
+```
+
+- User Django Admin Panel to create new **plans** and new **thumbnail sizes**.
+
 - To run tests run a following command:
 
 ```bash
